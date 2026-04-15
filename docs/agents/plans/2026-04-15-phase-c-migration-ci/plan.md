@@ -136,7 +136,7 @@ const { readChangelogVersion, readPackageVersion,
    `package.json` via local file reference during development:
    `"@mistralys/cli-menu": "file:../cli-menu"`.
    **Alternative: `npm link`.** Run `npm link` in the cli-menu repo,
-   then `npm link @mistralrs/cli-menu` in the AI Insights root.
+   then `npm link @mistralys/cli-menu` in the AI Insights root.
    This creates a global symlink without editing `package.json`.
    Neither approach requires the package to be published to npm —
    they work with any local clone that has been built (`dist/`
@@ -144,10 +144,10 @@ const { readChangelogVersion, readPackageVersion,
    symlinks with npm v7+, so live rebuilds of cli-menu are
    reflected immediately in AI Insights.
 2. **Verify import resolves:** Run
-   `node -e "console.log(Object.keys(require('@mistraljs/cli-menu')))"`.  
+   `node -e "console.log(Object.keys(require('@mistralys/cli-menu')))"`.    
 3. **Verify with `npm pack`** before relying on the `file:` reference
    for full migration testing. Run `npm pack` in the cli-menu repo,
-   then `npm install ./mistralrs-cli-menu-1.0.0.tgz` in AI Insights.
+   then `npm install ./mistralys-cli-menu-1.0.0.tgz` in AI Insights.
    This catches subpath export resolution issues that `file:`
    references silently hide (e.g., missing `exports` map entries,
    incorrect `dist/` paths). Once verified, switch back to `file:`
