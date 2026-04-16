@@ -20,7 +20,7 @@ point.
 | Document | Contents |
 |----------|----------|
 | [tech-stack.md](tech-stack.md) | Runtime, frameworks, layered architecture, build tooling, distribution format. |
-| [file-tree.md](file-tree.md) | Annotated directory structure (22 source files, 17 test files). |
+| [file-tree.md](file-tree.md) | Annotated directory structure (18 source files, 12 test files). |
 | [api-surface.md](api-surface.md) | All exported types, functions, and constants — signatures and description. |
 | [data-flows.md](data-flows.md) | Build pipeline, `createMenu()` dispatch, setup wizard flow, interactive menu loop. |
 | [constraints.md](constraints.md) | Architectural invariants, naming rules, known limitations. |
@@ -38,7 +38,7 @@ point.
 | **Build Tool** | tsup (dual CJS + ESM) |
 | **Test Framework** | Vitest |
 | **Production Dependencies** | 0 (zero-dependency) |
-| **Dev Dependencies** | 4 (`tsup`, `typescript`, `vitest`, `@types/node`) |
+| **Dev Dependencies** | 5 (`tsup`, `typescript`, `vitest`, `@vitest/coverage-v8`, `@types/node`) |
 | **License** | MIT |
 
 ---

@@ -1,6 +1,6 @@
 # File Tree — @mistralys/cli-menu
 
-Last updated: 2026-04-15 (reflects Phase B final structure)
+Last updated: 2026-04-16 (post-implementation cleanup)
 
 ---
 
@@ -10,6 +10,7 @@ Last updated: 2026-04-15 (reflects Phase B final structure)
 cli-menu/
 ├── AGENTS.md                    ← Agent operating system for this repo
 ├── CHANGELOG.md
+├── CLAUDE.md                    ← Points to AGENTS.md
 ├── LICENSE
 ├── package.json
 ├── README.md                    ← Primary API reference (user-facing)
@@ -19,7 +20,7 @@ cli-menu/
 ├── dist/                        ← Build output (gitignored)
 ├── docs/
 │   ├── agents/
-│   │   ├── plans/               ← Agent work plans (historical)
+│   │   ├── implementation-history/  ← Agent work plans (historical)
 │   │   ├── project-manifest/    ← This manifest (you are here)
 │   │   └── research/            ← Research notes
 │   ├── changelog-utilities.md   ← Changelog sub-path export docs
@@ -79,7 +80,6 @@ src/
 ```
 tests/
 ├── integration.test.ts          ← End-to-end tests for createMenu()
-├── changelog.test.ts            ← Changelog utility tests
 ├── colors.test.ts               ← ANSI color helper tests
 ├── create-menu.test.ts          ← createMenu() unit tests
 ├── help.test.ts                 ← printHelp() tests

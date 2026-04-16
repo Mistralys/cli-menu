@@ -57,13 +57,13 @@ lower layers never import from higher ones.
 
 tsup compiles two entry points:
 
-| Entry | CJS output | ESM output | DTS |
-|-------|-----------|-----------|-----|
-| `src/index.ts` | `dist/index.cjs` | `dist/index.js` | `dist/index.d.ts` |
-| `src/changelog/index.ts` | `dist/changelog/index.cjs` | `dist/changelog/index.js` | `dist/changelog/index.d.ts` |
+| Entry | CJS output | ESM output | DTS (ESM) | DTS (CJS) |
+|-------|-----------|-----------|-----------|-----------|
+| `src/index.ts` | `dist/index.cjs` | `dist/index.js` | `dist/index.d.ts` | `dist/index.d.cts` |
+| `src/changelog/index.ts` | `dist/changelog/index.cjs` | `dist/changelog/index.js` | `dist/changelog/index.d.ts` | `dist/changelog/index.d.cts` |
 
-Build config: `tsup.config.ts` — `format: ['cjs', 'esm']`, `dts: true`, `splitting: false`,
-`treeshake: true`, `target: 'node18'`.
+Build config: `tsup.config.ts` — `format: ['cjs', 'esm']`, `dts: true`, `clean: true`,
+`splitting: false`, `treeshake: true`, `target: 'node18'`.
 
 ---
 
@@ -77,9 +77,15 @@ Build config: `tsup.config.ts` — `format: ['cjs', 'esm']`, `dts: true`, `split
 Tests live in `tests/` and mirror the `src/` directory structure.  
 Config: `vitest.config.ts` — environment `node`, globals `true`, coverage thresholds 80%.
 
-The interactive modules (`src/menu/`, `src/setup/`, `src/raw-mode.ts`, `src/screen.ts`,
-`src/create-menu.ts`) require stdin/stdout mocking and are excluded from the coverage thresholds
-because they exercise platform-level I/O. Their own test suites provide targeted coverage.
+The following files are excluded from coverage thresholds:
+
+| Excluded File | Reason |
+|---------------|--------|
+| `src/index.ts` | Barrel re-export (no logic) |
+| `src/menu/index.ts` | Barrel re-export |
+| `src/setup/index.ts` | Barrel re-export |
+| `src/types.ts` | Type-only (no runtime code) |
+| `src/raw-mode.ts` | TTY interaction (cannot be exercised without a real terminal) |
 
 ---
 
@@ -94,14 +100,12 @@ receive `.d.ts` declarations for both entry points.
 ```json
 {
   ".": {
-    "types":   "./dist/index.d.ts",
-    "import":  "./dist/index.js",
-    "require": "./dist/index.cjs"
+    "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
   },
   "./changelog": {
-    "types":   "./dist/changelog/index.d.ts",
-    "import":  "./dist/changelog/index.js",
-    "require": "./dist/changelog/index.cjs"
+    "import": { "types": "./dist/changelog/index.d.ts", "default": "./dist/changelog/index.js" },
+    "require": { "types": "./dist/changelog/index.d.cts", "default": "./dist/changelog/index.cjs" }
   }
 }
 ```
