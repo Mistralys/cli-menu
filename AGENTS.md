@@ -44,6 +44,7 @@ When you change the codebase, update the corresponding manifest documents:
 | Add/modify exported type or interface | `api-surface.md` |
 | Add new source file | `file-tree.md`, `api-surface.md` (if public) |
 | Add/remove npm dependency | `tech-stack.md` (`devDependencies` and/or `dependencies`) |
+| Change supported Node.js version | `tech-stack.md`, `.github/workflows/ci.yml` (matrix), `package.json` (`engines`) |
 | Change layered architecture | `tech-stack.md`, `data-flows.md`, `constraints.md` |
 | Add/change dispatch step in `createMenu` | `data-flows.md` §3, `api-surface.md` §Factory |
 | Change interactive menu loop | `data-flows.md` §4 |
@@ -90,6 +91,7 @@ When you change the codebase, update the corresponding manifest documents:
 | **Missing manifest documentation** | Flag gap. Do not invent facts. Draft entry for review. | MUST |
 | **Untested code path** | Proceed with caution. Add test recommendation. | SHOULD |
 | **New production dependency proposed** | Justify in writing. Update `tech-stack.md`. Never add without justification. | MUST |
+| **Node.js version change applied** | Must manually update CI environments in `.github/workflows/ci.yml`. | MUST |
 | **Code needs to call `process.exit()`** | Do NOT add `process.exit()` inside library code. Return an exit code instead. | MUST |
 | **New engine module imports from factory** | Layer violation — restructure to keep factory above engine. | MUST |
 | **Breaking change to public API** | Document before implementing. Flag for review. Never implement silently. | MUST |
