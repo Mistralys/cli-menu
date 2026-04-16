@@ -1,6 +1,6 @@
 {
   "name": "@mistralys/cli-menu",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Zero-dependency TypeScript library for building interactive CLI menus with utilities for terminal output, script runners, changelog parsing, and help rendering.",
   "type": "module",
   "main": "./dist/index.cjs",
