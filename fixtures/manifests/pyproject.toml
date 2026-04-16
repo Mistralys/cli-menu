@@ -1,0 +1,4 @@
+[tool.poetry]
+name = "fixture-project"
+version = "0.8.4"
+description = "Fixture pyproject.toml for changelog tests"

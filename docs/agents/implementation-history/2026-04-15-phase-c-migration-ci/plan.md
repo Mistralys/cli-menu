@@ -130,6 +130,51 @@ const { readChangelogVersion, readPackageVersion,
 
 ## Detailed Steps
 
+### Step 0 — Pre-Publish Library Hardening
+
+The Phase B synthesis identified open items that should be resolved
+in the cli-menu repo before the library is published to npm.
+
+#### 0a. Code Hardening
+
+1. **Add try/catch around `cmd.run([])` in `showInteractiveMenu()`.**
+   Currently a thrown exception propagates out of the interactive
+   loop unconditionally. The terminal is restored via `finally`,
+   but the loop exits and the error surfaces unhandled. Wrap the
+   `cmd.run([])` call in a try/catch that prints the error
+   (via `log()`) and continues the loop instead of exiting.
+2. **Standardize `Object.defineProperty` isTTY save/restore in
+   tests.** `runner.test.ts` correctly saves and restores
+   `isTTY` via try/finally, but `screen.test.ts`,
+   `create-menu.test.ts`, and `interactive.test.ts` set `isTTY`
+   per-test without restoring. Add a `beforeEach`/`afterEach`
+   pattern (or per-test try/finally like `runner.test.ts`) to
+   all test files that mutate `isTTY`, preventing latent
+   order-dependence.
+
+#### 0b. Documentation
+
+3. **Document the empty-args contract.** In interactive mode,
+   `showInteractiveMenu()` calls `cmd.run([])` with an empty args
+   array. Any command that depends on receiving CLI flags will
+   not see them. Document this in three places:
+   - `Command.run` property JSDoc in `src/types.ts`.
+   - `showInteractiveMenu()` JSDoc in `src/menu/interactive.ts`.
+   - `api-surface.md` `Command` type section.
+4. **Enhance `waitForKeypress()` JSDoc.** The existing JSDoc
+   documents self-unregistration of the keypress listener, but
+   does not explain *why* the SIGINT handler must self-unregister
+   *before* calling `restoreTerminal()`. Add a brief note
+   referencing constraints.md §6.
+5. **Add cross-platform path hygiene rule to `constraints.md`.**
+   Multiple test helpers hardcode Unix paths (`/tmp/test`,
+   `/tmp/integration`). Add a constraint requiring `os.tmpdir()`
+   from `'node:os'` instead of hardcoded Unix paths in test
+   fixtures, matching the cross-platform policy.
+6. **Add cross-link from `docs/configuration.md` to README.**
+   The configuration reference is self-contained with no
+   navigation back to the API overview in the README.
+
 ### Step 1 — Install the Library
 
 1. **Install `@mistralys/cli-menu`** in AI Insights root
@@ -256,6 +301,20 @@ const { readChangelogVersion, readPackageVersion,
 
 ## Required Components
 
+### Modified Files (cli-menu repo — Step 0)
+
+- `src/menu/interactive.ts` — try/catch around `cmd.run([])`
+- `src/types.ts` — JSDoc on `Command.run` (empty-args contract)
+- `src/menu/interactive.ts` — JSDoc updates (empty-args,
+  waitForKeypress rationale)
+- `docs/agents/project-manifest/api-surface.md` — empty-args
+  contract
+- `docs/agents/project-manifest/constraints.md` — path hygiene
+  rule
+- `docs/configuration.md` — cross-link to README
+- `tests/screen.test.ts`, `tests/create-menu.test.ts`,
+  `tests/menu/interactive.test.ts` — isTTY save/restore pattern
+
 ### Modified Files (ai-insights repo)
 
 - `package.json` — add `@mistralys/cli-menu` dependency
@@ -294,9 +353,27 @@ const { readChangelogVersion, readPackageVersion,
   provides `extractChangelogEntry()` for programmatic use; the
   standalone script stays as-is for CI automation. A future
   consolidation is possible but not part of this migration.
+- **`longRunning?: boolean` flag on `Command`.** The synthesis
+  recommended replacing `instanceof Promise` detection with a
+  declarative flag. The current approach is correct for all existing
+  use cases. Defer to a post-v1 release if the fragility
+  materialises in practice.
+- **Per-ID warning for partial `--components` mismatches.** When
+  a subset of `--components` IDs are unrecognised, `runSetup()`
+  silently drops them (errors only when *all* are unknown). A
+  per-unknown-ID warning is a DX enhancement for a future release.
 
 ## Acceptance Criteria
 
+- (Step 0) `showInteractiveMenu()` catches exceptions from
+  `cmd.run([])` and continues the loop.
+- (Step 0) All test files that mutate `isTTY` save and restore
+  the original value.
+- (Step 0) `Command.run` JSDoc, `showInteractiveMenu()` JSDoc,
+  and `api-surface.md` document the empty-args contract.
+- (Step 0) `constraints.md` includes a cross-platform path rule
+  for test fixtures.
+- (Step 0) All existing cli-menu tests pass after hardening.
 - AI Insights `node scripts/cli.js` launches the interactive menu
   with the same visual output as before migration.
 - AI Insights `node scripts/cli.js help` produces the same help
