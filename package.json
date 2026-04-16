@@ -37,7 +37,9 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release-check": "node scripts/cli.js release-check",
+    "menu": "node scripts/cli.js"
   },
   "devDependencies": {
     "@types/node": "^22.13.14",
