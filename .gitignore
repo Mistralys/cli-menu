@@ -137,3 +137,9 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# AI Insights MCP Ledger work files
+/docs/agents/**/work.md
+/docs/agents/**/work/
+/docs/agents/**/work-packages-draft.md
+/docs/agents/**/pipeline-configuration.md
