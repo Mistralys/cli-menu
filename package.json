@@ -66,5 +66,8 @@
     "terminal",
     "interactive"
   ],
-  "author": "Mistralys"
+  "author": "Mistralys",
+  "publishConfig": {
+    "access": "public"
+  }
 }
