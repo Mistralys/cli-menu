@@ -32,7 +32,7 @@ point.
 | Property | Value |
 |----------|-------|
 | **Language** | TypeScript 5.8.2 (ES2022) |
-| **Runtime** | Node.js ≥ 18 (ESM, dual CJS + ESM dist) |
+| **Runtime** | Node.js ≥ 22 (ESM, dual CJS + ESM dist) |
 | **Architecture** | Layered: factory → engines → utilities |
 | **Package Manager** | npm |
 | **Build Tool** | tsup (dual CJS + ESM) |

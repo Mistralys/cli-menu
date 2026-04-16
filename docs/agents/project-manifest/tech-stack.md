@@ -9,7 +9,7 @@
 | **Language** | TypeScript 5.8.2 |
 | **Target** | ES2022 |
 | **Module system** | ESNext (source); dual CJS + ESM (dist) |
-| **Node.js** | ≥ 18.0.0 |
+| **Node.js** | ≥ 22.0.0 |
 | **`moduleResolution`** | `bundler` |
 | **Strict mode** | `true` |
 
@@ -63,7 +63,7 @@ tsup compiles two entry points:
 | `src/changelog/index.ts` | `dist/changelog/index.cjs` | `dist/changelog/index.js` | `dist/changelog/index.d.ts` | `dist/changelog/index.d.cts` |
 
 Build config: `tsup.config.ts` — `format: ['cjs', 'esm']`, `dts: true`, `clean: true`,
-`splitting: false`, `treeshake: true`, `target: 'node18'`.
+`splitting: false`, `treeshake: true`, `target: 'node22'`.
 
 ---
 
