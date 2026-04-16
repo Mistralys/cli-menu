@@ -1,4 +1,4 @@
-# Changelog
+# CLI Menu Changelog
 
 All notable changes to @mistralys/cli-menu will be documented in this file.
 
