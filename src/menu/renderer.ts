@@ -32,6 +32,14 @@ export function renderMenu(config: MenuConfig): void {
   process.stdout.write(C.dim(`  ${config.name}  v${version}`) + '\n');
   process.stdout.write('\n');
 
+  // Status lines (optional — renders immediately after the version block)
+  if (config.statusLines?.length) {
+    for (const fn of config.statusLines) {
+      process.stdout.write('  ' + fn() + '\n');
+    }
+    process.stdout.write('\n');
+  }
+
   // Commands grouped by category (insertion order of first occurrence).
   // Excluded from the interactive menu: hidden:true (not shown anywhere) or
   // key:null (CLI-only commands). helpHidden commands are intentionally included

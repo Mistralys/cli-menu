@@ -25,6 +25,9 @@ import type { MenuConfig } from '@mistralys/cli-menu';
 | `preflightChecks?` | `PreflightCheck[]` | no | Optional pre-flight checks run at startup before the interactive prompt is shown. |
 | `categoryVersions?` | `Record<string, () => string>` | no | Per-category version resolvers for multi-module workspaces. Keys are category names; values are functions returning version strings. |
 | `usageLine?` | `string` | no | Custom usage line shown in help output. When omitted, `printHelp()` falls back to `process.argv[1]`. See [Custom usage line](#custom-usage-line). |
+| `statusLines?` | `Array<() => string>` | no | Optional status-line renderers shown below the version in the interactive menu header. Each function is called synchronously on every render; its return value is written indented by two spaces. When absent or empty, no block or extra blank line is inserted. See [Status lines](#status-lines). |
+| `firstRunRedirect?` | `boolean` | no | When `true` and all `setupComponents[].detect()` return `false` (non-empty array required), the interactive menu triggers the first-run wizard before entering the main loop. Has no effect when `onFirstRun` is absent or `setupComponents` is empty. See [First-run wizard](#first-run-wizard). |
+| `onFirstRun?` | `() => Promise<string[]>` | no | Wizard callback invoked after the 2-second skip window when `firstRunRedirect` triggers. The terminal is restored to cooked mode before this is called, so readline-based prompts work correctly. Returns an array of `SetupComponent` IDs passed to `runSetup`. See [First-run wizard](#first-run-wizard). |
 
 ### Minimal example
 
@@ -111,6 +114,57 @@ const config: MenuConfig = {
   },
 };
 ```
+
+### Status lines
+
+`statusLines` renders a block of status information immediately below the version line in the
+interactive menu header. Each entry is a zero-argument function whose return value is written
+indented by two spaces. When `statusLines` is absent or empty, no block or extra blank line is
+inserted — output is identical to current behaviour.
+
+```ts
+const config: MenuConfig = {
+  // …
+  statusLines: [
+    () => `MCP server: ${mcpIsBuilt() ? 'ready' : 'not built'}`,
+    () => `Personas: ${personasFresh() ? 'up to date' : 'stale'}`,
+  ],
+};
+```
+
+> **Note:** If a status-line function throws, the exception propagates uncaught through
+> `renderMenu()` — no error boundary is applied. This is consistent with the existing API contract
+> for `version` and `categoryVersions` callbacks. Ensure each function is safe to call, or wrap
+> it in a try/catch.
+
+### First-run wizard
+
+`firstRunRedirect` and `onFirstRun` work together to present a one-time setup prompt on first
+launch. When `firstRunRedirect: true` and every `setupComponent.detect()` returns `false` (the
+non-empty guard prevents vacuous-truth triggering), the interactive menu enters a pre-loop phase:
+
+1. A redirect message is written: `First-run setup wizard — press [q] within 2 seconds to skip.`
+2. The user has 2 seconds to press `q` to skip the wizard and enter the normal menu.
+3. On timeout (skip not pressed), `onFirstRun()` is called in cooked mode (readline-compatible).
+4. If `onFirstRun` returns a non-empty array of component IDs, `runSetup` runs those components.
+5. The normal interactive menu loop starts after the wizard (or after skipping).
+
+```ts
+const config: MenuConfig = {
+  // …
+  setupComponents: [globalMcpComponent, workspaceMcpComponent],
+  firstRunRedirect: true,
+  onFirstRun: async () => {
+    // Consumer-side scope selection in cooked mode (readline prompts work here).
+    const choice = await askUserScope();
+    return choice === 'global' ? ['global-mcp'] : ['workspace-mcp'];
+  },
+};
+```
+
+> **CI / automation:** Pass `--skip-setup-check` on the command line (or set
+> `firstRunRedirect: false`) to bypass first-run detection entirely. `onFirstRun` is never
+> called when `firstRunRedirect` is falsy.
 
 ---
 

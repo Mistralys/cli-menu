@@ -289,4 +289,88 @@ describe('renderMenu()', () => {
     expect(lastCall).toContain('Choose: ');
     expect(lastCall).not.toMatch(/Choose:.*\n/);
   });
+
+  // -------------------------------------------------------------------------
+  // statusLines (AC-1, AC-2, AC-3)
+  // -------------------------------------------------------------------------
+
+  it('renders each statusLine indented with two spaces, one per line', () => {
+    const config = makeConfig({
+      statusLines: [() => 'line alpha', () => 'line beta'],
+    });
+    renderMenu(config);
+    const result = output();
+    expect(result).toContain('  line alpha\n');
+    expect(result).toContain('  line beta\n');
+  });
+
+  it('renders a single blank line after the status block, before commands', () => {
+    const config = makeConfig({
+      statusLines: [() => '\u2713 Status OK'],
+    });
+    renderMenu(config);
+    const result = output();
+    // The blank line after status must appear before the first category header
+    const statusIdx = result.indexOf('  \u2713 Status OK');
+    const categoryIdx = result.indexOf(BOLD_CODE + '  Development');
+    // There should be a blank line (\n\n) between the last status line and the category
+    const segment = result.slice(statusIdx, categoryIdx);
+    expect(segment).toContain('\n\n');
+  });
+
+  it('renders status block between the version line and the command categories', () => {
+    const config = makeConfig({
+      statusLines: [() => 'health: OK'],
+    });
+    renderMenu(config);
+    const result = output();
+    const versionIdx = result.indexOf('1.2.3');
+    const statusIdx  = result.indexOf('  health: OK');
+    const categoryIdx = result.indexOf(BOLD_CODE + '  Development');
+    expect(versionIdx).toBeGreaterThanOrEqual(0);
+    expect(statusIdx).toBeGreaterThan(versionIdx);
+    expect(categoryIdx).toBeGreaterThan(statusIdx);
+  });
+
+  it('leaves output unchanged when statusLines is undefined (AC-3)', () => {
+    const withoutStatus = makeConfig();
+    const withExplicitUndefined = makeConfig({ statusLines: undefined });
+
+    const captures: string[] = [];
+    writeSpy.mockImplementation((chunk) => { captures.push(String(chunk)); return true; });
+
+    renderMenu(withoutStatus);
+    const outputWithout = captures.join('');
+    captures.length = 0;
+
+    renderMenu(withExplicitUndefined);
+    const outputWithUndefined = captures.join('');
+
+    expect(outputWithUndefined).toBe(outputWithout);
+  });
+
+  it('leaves output unchanged when statusLines is an empty array (AC-3)', () => {
+    const withoutStatus = makeConfig();
+    const withEmptyArray = makeConfig({ statusLines: [] });
+
+    const captures: string[] = [];
+    writeSpy.mockImplementation((chunk) => { captures.push(String(chunk)); return true; });
+
+    renderMenu(withoutStatus);
+    const outputWithout = captures.join('');
+    captures.length = 0;
+
+    renderMenu(withEmptyArray);
+    const outputWithEmpty = captures.join('');
+
+    expect(outputWithEmpty).toBe(outputWithout);
+  });
+
+  it('calls each statusLines function exactly once per render', () => {
+    const spy1 = vi.fn(() => 'check one');
+    const spy2 = vi.fn(() => 'check two');
+    renderMenu(makeConfig({ statusLines: [spy1, spy2] }));
+    expect(spy1).toHaveBeenCalledOnce();
+    expect(spy2).toHaveBeenCalledOnce();
+  });
 });

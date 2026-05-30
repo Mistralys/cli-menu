@@ -586,6 +586,235 @@ describe('showInteractiveMenu()', () => {
     const rendersAfter = (renderer.renderMenu as ReturnType<typeof vi.fn>).mock.calls.length;
     expect(rendersAfter).toBeGreaterThan(rendersBefore);
   });
+
+  // -------------------------------------------------------------------------
+  // First-run redirect (firstRunRedirect + onFirstRun)
+  // -------------------------------------------------------------------------
+
+  function makeFirstRunConfig(
+    onFirstRun: () => Promise<string[]>,
+    overrides: Partial<MenuConfig> = {},
+  ): MenuConfig {
+    return makeConfig({
+      firstRunRedirect: true,
+      onFirstRun,
+      setupComponents: [
+        {
+          id: 'global-mcp',
+          label: 'Global MCP',
+          desc: 'User-level IDE registration',
+          detect: () => false, // all unset → redirect
+          run: () => true,
+          validate: () => false,
+        },
+      ],
+      ...overrides,
+    });
+  }
+
+  it('skips redirect when firstRunRedirect is absent', async () => {
+    const onFirstRun = vi.fn().mockResolvedValue([]);
+    const config = makeConfig({
+      onFirstRun,
+      setupComponents: [{ id: 'c', label: 'C', desc: '', detect: () => false, run: () => true, validate: () => false }],
+    });
+    const ctrl = buildKeypressController();
+    const menuPromise = showInteractiveMenu(config);
+    ctrl.fire('q');
+    await menuPromise;
+    expect(onFirstRun).not.toHaveBeenCalled();
+  });
+
+  it('skips redirect when all detect() return true (AC-2)', async () => {
+    const onFirstRun = vi.fn().mockResolvedValue([]);
+    const config = makeConfig({
+      firstRunRedirect: true,
+      onFirstRun,
+      setupComponents: [
+        { id: 'c', label: 'C', desc: '', detect: () => true, run: () => true, validate: () => true },
+      ],
+    });
+    const ctrl = buildKeypressController();
+    const menuPromise = showInteractiveMenu(config);
+    ctrl.fire('q');
+    await menuPromise;
+    expect(onFirstRun).not.toHaveBeenCalled();
+  });
+
+  it('skips redirect when at least one detect() returns true (AC-2)', async () => {
+    const onFirstRun = vi.fn().mockResolvedValue([]);
+    const config = makeConfig({
+      firstRunRedirect: true,
+      onFirstRun,
+      setupComponents: [
+        { id: 'a', label: 'A', desc: '', detect: () => false, run: () => true, validate: () => false },
+        { id: 'b', label: 'B', desc: '', detect: () => true, run: () => true, validate: () => true },
+      ],
+    });
+    const ctrl = buildKeypressController();
+    const menuPromise = showInteractiveMenu(config);
+    ctrl.fire('q');
+    await menuPromise;
+    expect(onFirstRun).not.toHaveBeenCalled();
+  });
+
+  it('skips redirect when setupComponents is absent (no vacuous redirect)', async () => {
+    const onFirstRun = vi.fn().mockResolvedValue([]);
+    const config = makeConfig({ firstRunRedirect: true, onFirstRun });
+    const ctrl = buildKeypressController();
+    const menuPromise = showInteractiveMenu(config);
+    ctrl.fire('q');
+    await menuPromise;
+    expect(onFirstRun).not.toHaveBeenCalled();
+  });
+
+  it('skips redirect when setupComponents is empty (no vacuous redirect)', async () => {
+    const onFirstRun = vi.fn().mockResolvedValue([]);
+    const config = makeConfig({ firstRunRedirect: true, onFirstRun, setupComponents: [] });
+    const ctrl = buildKeypressController();
+    const menuPromise = showInteractiveMenu(config);
+    ctrl.fire('q');
+    await menuPromise;
+    expect(onFirstRun).not.toHaveBeenCalled();
+  });
+
+  it('q within skip window skips onFirstRun (AC-3 — q resolves true)', async () => {
+    const onFirstRun = vi.fn().mockResolvedValue([]);
+    const config = makeFirstRunConfig(onFirstRun);
+    const ctrl = buildKeypressController();
+    const menuPromise = showInteractiveMenu(config);
+
+    // Fire q to skip within the 2-second window.
+    // waitForSkip is now the most-recently registered keypress listener.
+    ctrl.fire('q');
+
+    // Yield so the redirect block can exit and the main loop can register its listener.
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // Main loop is now running — exit it.
+    ctrl.fire('q');
+    await menuPromise;
+
+    expect(onFirstRun).not.toHaveBeenCalled();
+  });
+
+  it('timeout triggers onFirstRun (AC-1, AC-3 — timeout resolves false)', async () => {
+    vi.useFakeTimers();
+    const onFirstRun = vi.fn().mockResolvedValue([]);
+    const config = makeFirstRunConfig(onFirstRun);
+    const ctrl = buildKeypressController();
+    const menuPromise = showInteractiveMenu(config);
+
+    // Advance past the 2-second window → waitForSkip resolves false → wizard launches.
+    await vi.advanceTimersByTimeAsync(2001);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(onFirstRun).toHaveBeenCalledOnce();
+
+    // Main loop is now running — exit it.
+    ctrl.fire('q');
+    await menuPromise;
+
+    vi.useRealTimers();
+  });
+
+  it('restoreTerminal is called before onFirstRun (AC-4)', async () => {
+    vi.useFakeTimers();
+    const callOrder: string[] = [];
+    vi.spyOn(rawMode, 'restoreTerminal').mockImplementation(() => {
+      callOrder.push('restoreTerminal');
+    });
+    const onFirstRun = vi.fn().mockImplementation(async () => {
+      callOrder.push('onFirstRun');
+      return [];
+    });
+    const config = makeFirstRunConfig(onFirstRun);
+    const ctrl = buildKeypressController();
+    const menuPromise = showInteractiveMenu(config);
+
+    await vi.advanceTimersByTimeAsync(2001);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // restoreTerminal must appear before onFirstRun in call order.
+    const restoreIdx = callOrder.indexOf('restoreTerminal');
+    const onFirstRunIdx = callOrder.indexOf('onFirstRun');
+    expect(restoreIdx).toBeGreaterThanOrEqual(0);
+    expect(onFirstRunIdx).toBeGreaterThan(restoreIdx);
+
+    ctrl.fire('q');
+    await menuPromise;
+
+    vi.useRealTimers();
+  });
+
+  it('redirect message written to stdout during skip window (AC-1)', async () => {
+    vi.useFakeTimers();
+    const onFirstRun = vi.fn().mockResolvedValue([]);
+    const config = makeFirstRunConfig(onFirstRun);
+    const ctrl = buildKeypressController();
+    const menuPromise = showInteractiveMenu(config);
+
+    // Message must be written during the skip window, before the timer fires.
+    const writtenBeforeTimer = (process.stdout.write as ReturnType<typeof vi.fn>).mock.calls
+      .map(([arg]: [unknown]) => String(arg))
+      .join('');
+    expect(writtenBeforeTimer).toContain('First-run setup wizard');
+
+    await vi.advanceTimersByTimeAsync(2001);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    ctrl.fire('q');
+    await menuPromise;
+
+    vi.useRealTimers();
+  });
+
+  it('runSetup called with IDs returned by onFirstRun when they are non-empty', async () => {
+    vi.useFakeTimers();
+    const onFirstRun = vi.fn().mockResolvedValue(['global-mcp']);
+    const config = makeFirstRunConfig(onFirstRun);
+    const ctrl = buildKeypressController();
+    const menuPromise = showInteractiveMenu(config);
+
+    await vi.advanceTimersByTimeAsync(2001);
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(setupModule.runSetup).toHaveBeenCalledWith(
+      config.setupComponents,
+      ['--components=global-mcp'],
+    );
+
+    ctrl.fire('q');
+    await menuPromise;
+
+    vi.useRealTimers();
+  });
+
+  it('runSetup not called when onFirstRun returns empty array', async () => {
+    vi.useFakeTimers();
+    const onFirstRun = vi.fn().mockResolvedValue([]);
+    const config = makeFirstRunConfig(onFirstRun);
+    const ctrl = buildKeypressController();
+    const menuPromise = showInteractiveMenu(config);
+
+    await vi.advanceTimersByTimeAsync(2001);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(setupModule.runSetup).not.toHaveBeenCalled();
+
+    ctrl.fire('q');
+    await menuPromise;
+
+    vi.useRealTimers();
+  });
 });
 
 // ---------------------------------------------------------------------------

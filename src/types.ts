@@ -96,6 +96,35 @@ export interface MenuConfig {
   /** Custom usage line shown in help output (e.g. "node scripts/cli.js [command]").
    *  When omitted, `printHelp()` falls back to `process.argv[1]`. */
   usageLine?: string;
+  /**
+   * Optional status-line renderers shown below the version in the interactive
+   * menu header. Each function is called synchronously on every render and its
+   * return value is written indented by two spaces. When absent or empty, no
+   * status block or extra blank line is injected.
+   *
+   * **Throw propagation:** exceptions thrown by a status-line function propagate
+   * uncaught through `renderMenu()` — no error boundary is applied. This is
+   * consistent with the existing contract for `version` and `categoryVersions`
+   * callbacks. Ensure each function is safe to call, or wrap it in a try/catch.
+   */
+  statusLines?: Array<() => string>;
+  /**
+   * When `true`, `showInteractiveMenu` checks whether all `setupComponents`
+   * entries are unconfigured (i.e. every `detect()` returns `false`). If so,
+   * it enters a 2-second skippable window before invoking `onFirstRun`.
+   * Has no effect when `setupComponents` is absent or empty.
+   */
+  firstRunRedirect?: boolean;
+  /**
+   * Called when `firstRunRedirect` is `true` and all `setupComponents` are
+   * unconfigured. The function should present a scope-selection prompt and
+   * return an array of `setupComponent` IDs to run. Returning an empty array
+   * skips `runSetup` entirely.
+   *
+   * The terminal is restored to cooked mode before this function is called,
+   * so readline-based prompts work correctly.
+   */
+  onFirstRun?: () => Promise<string[]>;
 }
 
 /**

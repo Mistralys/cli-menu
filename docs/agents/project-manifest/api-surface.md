@@ -36,6 +36,9 @@ interface MenuConfig {
   preflightChecks?:   PreflightCheck[];
   categoryVersions?:  Record<string, () => string>;
   usageLine?:         string;
+  statusLines?:       Array<() => string>;     // called sync on each render; throws propagate uncaught
+  firstRunRedirect?:  boolean;                  // trigger first-run redirect when all setupComponents undetected
+  onFirstRun?:        () => Promise<string[]>;  // invoked after 2s skip window; terminal is in cooked mode
 }
 ```
 

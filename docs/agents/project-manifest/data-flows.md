@@ -73,10 +73,36 @@ run(argv)
 showInteractiveMenu(config)
     │
     ├─ Register SIGINT handler (calls restoreTerminal + re-raises)
-    ├─ enterRawMode()
-    ├─ renderMenu(config)          ← clearScreen + draw banner/commands/footer
     │
-    └─ loop: waitForKeypress()
+    ├─ First-run redirect (pre-loop — runs only when all four conditions are met):
+    │       Conditions: config.firstRunRedirect === true
+    │                 + config.onFirstRun !== undefined
+    │                 + config.setupComponents.length > 0
+    │                 + every setupComponent.detect() === false
+    │       │
+    │       ├─ enterRawMode()
+    │       ├─ write: "First-run setup wizard — press [q] within 2 seconds to skip."
+    │       ├─ waitForSkip(2000)      ← q cancels within window; timeout continues
+    │       ├─ restoreTerminal()      ← before onFirstRun (cooked mode for readline)
+    │       └─ if not skipped:
+    │               componentIds = await config.onFirstRun()
+    │               if componentIds.length > 0:
+    │                   runSetup(setupComponents, ['--components=<ids>'])
+    │
+    └─ loop:
+           enterRawMode()
+           renderMenu(config):
+               clearScreen()
+               banner lines (cyan)
+               version line (dim)
+               statusLines block (optional):
+                   for each fn in config.statusLines: write '  ' + fn() + '\n'
+                   blank line after block (omitted when statusLines absent/empty)
+               commands grouped by category (bold header + optional sub-version)
+               [h] Help  [q] Quit footer
+               "Choose: " prompt (no trailing newline)
+           │
+           waitForKeypress()
            │
            ├─ 'q'     → break (exit loop cleanly)
            │
