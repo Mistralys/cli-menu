@@ -22,6 +22,8 @@ all from a single `createMenu()` call. No dependencies, no framework, no boilerp
 - **Terminal color helpers** — composable ANSI color wrappers, no external packages needed
 - **Zero runtime dependencies** — only Node.js built-ins
 
+> See it on NPM: https://www.npmjs.com/package/@mistralys/cli-menu
+
 ## Requirements
 
 - Node.js ≥ 18.0.0
