@@ -160,28 +160,6 @@ function checkChangelogVersionAhead() {
   return ahead;
 }
 
-function checkGitTagGap() {
-  log(`\n${C.bold('Git tag gap check')}`);
-  const changelogVersion = readChangelogVersion(CHANGELOG_PATH);
-  if (changelogVersion === 'unknown') {
-    printCheck('tag gap', false, 'could not parse changelog version');
-    return false;
-  }
-
-  const tags = capture('git tag --sort=-v:refname');
-  const tagList = tags.split('\n').filter(Boolean);
-  const alreadyTagged = tagList.includes(changelogVersion);
-
-  printCheck(
-    'tag gap',
-    !alreadyTagged,
-    alreadyTagged
-      ? `${changelogVersion} is already tagged — nothing new to release`
-      : `${changelogVersion} is not yet tagged — ready to release`,
-  );
-  return !alreadyTagged;
-}
-
 function checkGitClean() {
   log(`\n${C.bold('Git working tree')}`);
   const status = capture('git status --short');
@@ -206,22 +184,19 @@ async function runReleaseCheck() {
   // 1. Changelog version ahead
   results.push(['Changelog version ahead', checkChangelogVersionAhead()]);
 
-  // 2. Git tag gap
-  results.push(['Git tag gap', checkGitTagGap()]);
-
-  // 3. TypeScript type check
+  // 2. TypeScript type check
   results.push(['TypeScript type check', checkTypecheck()]);
 
-  // 4. Test suite
+  // 3. Test suite
   results.push(['Test suite', checkTest()]);
 
-  // 5. Build
+  // 4. Build
   results.push(['Build', checkBuild()]);
 
-  // 6. Verify dist output
+  // 5. Verify dist output
   results.push(['Dist output', checkDistOutput()]);
 
-  // 7. Git working tree
+  // 6. Git working tree
   results.push(['Git working tree', checkGitClean()]);
 
   // Summary
