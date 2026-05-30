@@ -18,7 +18,7 @@
 
 import { existsSync, accessSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execSync } from 'node:child_process';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -39,14 +39,15 @@ if (!existsSync(distIndex)) {
 const {
   createMenu,
   checkNodeVersion,
-  runScript,
+  sh,
   NPM,
   C,
   log,
-} = await import(distIndex);
+  waitForKey,
+} = await import(pathToFileURL(distIndex).href);
 
 const { readChangelogVersion, readPackageVersion } = await import(
-  join(ROOT, 'dist', 'changelog', 'index.js')
+  pathToFileURL(join(ROOT, 'dist', 'changelog', 'index.js')).href
 );
 
 // ---------------------------------------------------------------------------
@@ -94,21 +95,21 @@ function semverCompare(a, b) {
 
 function checkTypecheck() {
   log(`\n${C.bold('TypeScript type check')}`);
-  const code = runScript(NPM, ['run', 'typecheck'], { cwd: ROOT });
+  const code = sh(NPM, ['run', 'typecheck'], { cwd: ROOT });
   printCheck('typecheck', code === 0, code === 0 ? 'no errors' : `exit code ${code}`);
   return code === 0;
 }
 
 function checkTest() {
   log(`\n${C.bold('Test suite')}`);
-  const code = runScript(NPM, ['test'], { cwd: ROOT });
+  const code = sh(NPM, ['test'], { cwd: ROOT });
   printCheck('tests', code === 0, code === 0 ? 'all tests passed' : `exit code ${code}`);
   return code === 0;
 }
 
 function checkBuild() {
   log(`\n${C.bold('Build')}`);
-  const code = runScript(NPM, ['run', 'build'], { cwd: ROOT });
+  const code = sh(NPM, ['run', 'build'], { cwd: ROOT });
   printCheck('build', code === 0, code === 0 ? 'dist/ produced' : `exit code ${code}`);
   return code === 0;
 }
@@ -237,6 +238,8 @@ async function runReleaseCheck() {
     const failed = results.filter(([, ok]) => !ok).map(([label]) => label);
     log(C.red(`  ${failed.length} check(s) failed: ${failed.join(', ')}\n`));
   }
+
+  await waitForKey();
 }
 
 // ---------------------------------------------------------------------------

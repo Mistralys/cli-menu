@@ -72,16 +72,18 @@ export function runLongScript(
  * code — never throws or calls `process.exit()`, making it suitable for setup
  * sequences where partial failures are recoverable.
  *
- * Defaults `shell` to `true` on Windows so `.cmd` wrapper scripts
- * (`npm.cmd`, `pip.cmd`) resolve correctly under Node 22+.
+ * Cross-platform shell runner. On Windows, wraps the invocation in
+ * `cmd /c` so that `.cmd` wrapper scripts (`npm.cmd`, `pip.cmd`) are
+ * resolved by the OS shell without triggering Node.js DEP0190 (the
+ * deprecation warning emitted when passing an `args` array together
+ * with `shell: true`). On all other platforms the command is executed
+ * directly without a shell wrapper.
  *
- * **Security note:** When `shell` is `true`, Node.js joins `args` with spaces
- * before passing to the OS shell. Never pass untrusted user input as `args`
- * when the shell is enabled — doing so enables command injection.
+ * Does NOT call `process.exit()` — callers decide how to handle non-zero codes.
  *
  * @param command - The executable or shell command to run.
  * @param args    - Arguments to pass to the command.
- * @param options - Optional spawn options. `shell` defaults to `IS_WIN`.
+ * @param options - Optional spawn options (cwd, env, etc.).
  * @returns `0` on success, non-zero on failure.
  */
 export function sh(
@@ -89,9 +91,11 @@ export function sh(
   args: string[] = [],
   options: ScriptRunnerOptions = {},
 ): number {
-  const result = spawnSync(command, args, {
+  const [cmd, finalArgs]: [string, string[]] = IS_WIN
+    ? ['cmd', ['/c', command, ...args]]
+    : [command, args];
+  const result = spawnSync(cmd, finalArgs, {
     stdio: 'inherit',
-    shell: IS_WIN,
     ...options,
   });
   return result.status ?? 1;

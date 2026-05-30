@@ -184,23 +184,31 @@ describe('sh()', () => {
     expect(sh('cmd', [])).toBe(1);
   });
 
-  it('defaults shell to IS_WIN', () => {
+  it('wraps with cmd /c on Windows, executes directly on other platforms', () => {
     mockSpawnSync.mockReturnValue(makeSpawnResult(0));
-    sh('echo', ['hi']);
-    expect(mockSpawnSync).toHaveBeenCalledWith(
-      'echo',
-      ['hi'],
-      expect.objectContaining({ shell: IS_WIN }),
-    );
+    sh('echo', ['hello']);
+    if (IS_WIN) {
+      expect(mockSpawnSync).toHaveBeenCalledWith(
+        'cmd',
+        ['/c', 'echo', 'hello'],
+        expect.objectContaining({ stdio: 'inherit' }),
+      );
+    } else {
+      expect(mockSpawnSync).toHaveBeenCalledWith(
+        'echo',
+        ['hello'],
+        expect.objectContaining({ stdio: 'inherit' }),
+      );
+    }
   });
 
-  it('allows overriding shell option', () => {
+  it('passes extra options through to spawnSync', () => {
     mockSpawnSync.mockReturnValue(makeSpawnResult(0));
-    sh('echo', ['hi'], { shell: true });
+    sh('echo', ['hi'], { env: { PATH: '/usr/bin' } });
     expect(mockSpawnSync).toHaveBeenCalledWith(
-      'echo',
-      ['hi'],
-      expect.objectContaining({ shell: true }),
+      expect.any(String),
+      expect.any(Array),
+      expect.objectContaining({ env: { PATH: '/usr/bin' } }),
     );
   });
 
@@ -208,8 +216,8 @@ describe('sh()', () => {
     mockSpawnSync.mockReturnValue(makeSpawnResult(0));
     sh('npm', ['install'], { cwd: '/workspace' });
     expect(mockSpawnSync).toHaveBeenCalledWith(
-      'npm',
-      ['install'],
+      IS_WIN ? 'cmd' : 'npm',
+      IS_WIN ? ['/c', 'npm', 'install'] : ['install'],
       expect.objectContaining({ cwd: '/workspace' }),
     );
   });
