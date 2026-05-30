@@ -111,7 +111,8 @@ import { readChangelogVersion } from '@mistralys/cli-menu/changelog';
 4. Verify distribution.
 5. Run the release check, fix any issues.
 6. Commit all unstages changes.
-7. `npm version 0.0.0` - Updates package and lock versions + commit
-8. `npm publish` - Publish version on NPM
-9. `git push origin 0.0.0` - Add the tag in GIT
-10. Add the release on Github
+7. `npm login` if necessary.
+7. `npm version 0.0.0` - Updates package and lock versions + commit.
+8. `npm publish` - Publish version on NPM.
+9. `git push origin v0.0.0` - Add the tag in GIT (note the `v`).
+10. Add the release on Github.
