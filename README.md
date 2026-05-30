@@ -22,8 +22,6 @@ all from a single `createMenu()` call. No dependencies, no framework, no boilerp
 - **Terminal color helpers** — composable ANSI color wrappers, no external packages needed
 - **Zero runtime dependencies** — only Node.js built-ins
 
-> See it on NPM: https://www.npmjs.com/package/@mistralys/cli-menu
-
 ## Requirements
 
 - Node.js ≥ 18.0.0
@@ -98,6 +96,12 @@ import { readChangelogVersion } from '@mistralys/cli-menu/changelog';
 | [Configuration Reference](docs/configuration.md) | All `MenuConfig`, `Command`, and `SetupComponent` properties with examples |
 | [Changelog Utilities](docs/changelog-utilities.md) | Reading versions from changelogs, `package.json`, and `pyproject.toml` |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
+
+## Repositories
+
+- GitHub: https://github.com/Mistralys/cli-menu
+- NPM: https://www.npmjs.com/package/@mistralys/cli-menu
+
 
 ## Releasing Workflow
 
