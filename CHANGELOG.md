@@ -1,5 +1,8 @@
 # CLI Menu Changelog
 
+## v1.1.1 - Bundle Documentation
+- Docs: All documentation is now bundled in the NPM package to keep it available.
+
 ## v1.1.0 - First-Run Wizard & Status Lines
 - Menu: Added `statusLines` — synchronous renderers injected below the version line in the header.
 - Menu: Added `firstRunRedirect` — skippable 2-second first-run window when no setup is detected.
