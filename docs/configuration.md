@@ -317,6 +317,13 @@ helpVariants: [
 ]
 ```
 
+> **Column width:** `printHelp()` aligns command names and `helpVariants` labels to a fixed
+> 28-character column (`CMD_WIDTH`). Labels shorter than 28 characters are padded with spaces;
+> a label at or beyond 28 characters is never truncated — it is instead followed by exactly one
+> space before its description, so the columns can shift for that entry but two fields are never
+> fused together. Prefer keeping `id` and `helpVariants` labels under 28 characters where
+> practical to keep the columns visually aligned.
+
 ---
 
 **See also:** [README](../README.md) — quick-start guide and full feature overview.

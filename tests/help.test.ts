@@ -264,6 +264,26 @@ describe('printHelp()', () => {
     expect(output).toContain('  ' + 'x'.padEnd(28) + C.dim('Desc'));
   });
 
+  it('separates an over-width command id from its description with at least one space', () => {
+    const longId = 'a'.repeat(30);
+    const commands = [makeCommand({ id: longId, category: 'Cat', description: 'Desc' })];
+    printHelp(commands, makeConfig());
+    expect(output).toContain(`  ${longId} ${C.dim('Desc')}`);
+  });
+
+  it('separates an over-width helpVariants label from its description with at least one space', () => {
+    const longVariant = 'setup --' + 'b'.repeat(22);
+    const commands = [
+      makeCommand({
+        id: 'setup',
+        category: 'Build',
+        helpVariants: [[longVariant, 'Variant desc']],
+      }),
+    ];
+    printHelp(commands, makeConfig());
+    expect(output).toContain(`  ${longVariant} ${C.dim('Variant desc')}`);
+  });
+
   it('outputs the usage line from config.usageLine when provided', () => {
     printHelp([], makeConfig({ usageLine: 'node scripts/cli.js [command] [options]' }));
     expect(output).toContain('Usage: node scripts/cli.js [command] [options]');

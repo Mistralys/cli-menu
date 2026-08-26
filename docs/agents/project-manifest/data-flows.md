@@ -200,6 +200,13 @@ printHelp(commands, config)
            append synthetic 'help' entry unless id:'help' already present
 ```
 
+`formatEntry(name, description)` pads `name` to the fixed `CMD_WIDTH = 28` column via
+`padEnd()`. Once `name.length >= CMD_WIDTH`, `padEnd()` is a no-op, so `formatEntry()`
+explicitly appends a single space in that branch instead — guaranteeing at least one space
+between an over-width name and its description rather than truncating the name or fusing the
+two fields together. This applies identically to command ids and `helpVariants` labels, since
+both are rendered through the same `formatEntry()` call.
+
 ---
 
 ## 8. Context Merge Order (No-Op)

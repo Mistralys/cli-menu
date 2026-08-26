@@ -7,9 +7,15 @@ const CMD_WIDTH = 28;
 
 /**
  * Format a single command-line entry (name padded + dim description).
+ *
+ * Guarantees at least one space between `name` and the description even
+ * when `name` is at or beyond `CMD_WIDTH` — `padEnd()` alone is a no-op
+ * once the string reaches the target width, which would otherwise fuse an
+ * over-width name directly against its description.
  */
 function formatEntry(name: string, description: string): string {
-  return `  ${name.padEnd(CMD_WIDTH)}${C.dim(description)}`;
+  const column = name.length < CMD_WIDTH ? name.padEnd(CMD_WIDTH) : `${name} `;
+  return `  ${column}${C.dim(description)}`;
 }
 
 /**
