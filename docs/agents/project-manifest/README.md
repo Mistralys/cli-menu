@@ -1,8 +1,6 @@
 # Project Manifest — @mistralys/cli-menu
 
-**Version:** 0.1.0  
-**Package:** `@mistralys/cli-menu`  
-**Last Updated:** 2026-04-15
+**Package:** `@mistralys/cli-menu`
 
 ---
 
@@ -24,6 +22,7 @@ point.
 | [api-surface.md](api-surface.md) | All exported types, functions, and constants — signatures and description. |
 | [data-flows.md](data-flows.md) | Build pipeline, `createMenu()` dispatch, setup wizard flow, interactive menu loop. |
 | [constraints.md](constraints.md) | Architectural invariants, naming rules, known limitations. |
+| [curation-log.md](curation-log.md) | Standing decisions about how the manifest is arranged, and the dated history of curation passes. |
 
 ---
 
