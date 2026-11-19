@@ -160,6 +160,33 @@ function checkChangelogVersionAhead() {
   return ahead;
 }
 
+/**
+ * Verify that no Git tag exists for the changelog version, with or without
+ * the `v` prefix. `npm version` creates `vX.Y.Z`; a hand-made `X.Y.Z` tag
+ * would collide with the release it is meant to mark.
+ */
+function checkTagGap() {
+  log(`\n${C.bold('Git tag gap check')}`);
+  const changelogVersion = readChangelogVersion(CHANGELOG_PATH);
+  if (changelogVersion === 'unknown') {
+    printCheck('git tag', false, 'could not parse CHANGELOG.md');
+    return false;
+  }
+  const bare = changelogVersion.replace(/^v/, '');
+  const existing = capture('git tag --list')
+    .split(/\r?\n/)
+    .filter((tag) => tag === bare || tag === `v${bare}`);
+  const free = existing.length === 0;
+  printCheck(
+    'git tag',
+    free,
+    free
+      ? `no tag for ${bare} (checked "${bare}" and "v${bare}")`
+      : `tag already exists: ${existing.join(', ')}`,
+  );
+  return free;
+}
+
 function checkGitClean() {
   log(`\n${C.bold('Git working tree')}`);
   const status = capture('git status --short');
@@ -184,19 +211,22 @@ async function runReleaseCheck() {
   // 1. Changelog version ahead
   results.push(['Changelog version ahead', checkChangelogVersionAhead()]);
 
-  // 2. TypeScript type check
+  // 2. Git tag gap
+  results.push(['Git tag gap', checkTagGap()]);
+
+  // 3. TypeScript type check
   results.push(['TypeScript type check', checkTypecheck()]);
 
-  // 3. Test suite
+  // 4. Test suite
   results.push(['Test suite', checkTest()]);
 
-  // 4. Build
+  // 5. Build
   results.push(['Build', checkBuild()]);
 
-  // 5. Verify dist output
+  // 6. Verify dist output
   results.push(['Dist output', checkDistOutput()]);
 
-  // 6. Git working tree
+  // 7. Git working tree
   results.push(['Git working tree', checkGitClean()]);
 
   // Summary
