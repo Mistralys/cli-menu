@@ -95,6 +95,7 @@ import { readChangelogVersion } from '@mistralys/cli-menu/changelog';
 |----------|-------------|
 | [Configuration Reference](docs/configuration.md) | All `MenuConfig`, `Command`, and `SetupComponent` properties with examples |
 | [Changelog Utilities](docs/changelog-utilities.md) | Reading versions from changelogs, `package.json`, and `pyproject.toml` |
+| [Releasing](docs/releasing.md) | Maintainer release guide — checklist, tag naming, NPM/Git/GitHub order |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 
 ## Repositories
@@ -103,16 +104,6 @@ import { readChangelogVersion } from '@mistralys/cli-menu/changelog';
 - NPM: https://www.npmjs.com/package/@mistralys/cli-menu
 
 
-## Releasing Workflow
+## Releasing
 
-1. Add changelog entries (do not change package.json version)
-2. Run the menu.
-3. Build the project.
-4. Verify distribution.
-5. Run the release check, fix any issues.
-6. Commit all unstages changes.
-7. `npm login` if necessary.
-7. `npm version 0.0.0` - Updates package and lock versions + commit.
-8. `npm publish` - Publish version on NPM.
-9. `git push origin v0.0.0` - Add the tag in GIT (note the `v`).
-10. Add the release on Github.
+See the [Releasing guide](docs/releasing.md) for the numbered quick reference, the tag naming rule (`vX.Y.Z`, created by `npm version` — never tag by hand), and the NPM / Git / GitHub order.

@@ -24,7 +24,8 @@ cli-menu/
 │   │   ├── project-manifest/    ← This manifest (you are here)
 │   │   └── research/            ← Research notes
 │   ├── changelog-utilities.md   ← Changelog sub-path export docs
-│   └── configuration.md         ← MenuConfig / Command / SetupComponent reference
+│   ├── configuration.md         ← MenuConfig / Command / SetupComponent reference
+│   └── releasing.md             ← Maintainer release guide (checklist, tag naming)
 ├── fixtures/
 │   ├── changelogs/              ← Changelog fixture files for tests
 │   └── manifests/               ← package.json / pyproject.toml fixtures
